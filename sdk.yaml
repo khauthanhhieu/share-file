@@ -1,0 +1,904 @@
+# Example YAML to get you started quickly.
+# Be aware that YAML has indentation based scoping.
+# Code completion support is available so start typing for available options.
+swagger: '2.0'
+
+# This is your document metadata
+info:
+  version: "1.2.0"
+  title: SDKAPI Document
+
+tags:
+  - name: "app"
+    externalDocs:
+      description: "Find out more"
+      url: "http://gitlab.phoeniz.com/dev/sdkapi.phoeniz.com/blob/master/app/controllers/mobi-v1.2/appController.js"
+  - name: "payment"
+    externalDocs:
+      description: "Find out more"
+      url: "http://gitlab.phoeniz.com/dev/sdkapi.phoeniz.com/blob/master/app/controllers/mobi-v1.2/play-adsController.js"
+  - name: "player-ads"
+    externalDocs:
+      description: "Find out more"
+      url: "http://gitlab.phoeniz.com/dev/sdkapi.phoeniz.com/blob/master/app/controllers/mobi-v1.2/play-adsController.js"
+  - name: "player"
+    externalDocs:
+      description: "Find out more"
+      url: "http://gitlab.phoeniz.com/dev/sdkapi.phoeniz.com/blob/master/app/controllers/mobi-v1.2/playerController.js"
+# Describe your paths here
+paths:
+  # This is a path endpoint. Change it.
+  /app/config:
+    # This is a HTTP operation
+    get:
+      tags:
+        - "app"
+      summary: gets app config
+      # This is array of GET operation parameters:
+      parameters:
+        # An example parameter that is in query and is required
+        - name: id
+          in: query
+          description: Identification of app
+          required: true
+          type: string
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+          description: Successful response
+          # A schema describing your response object.
+          # Use JSON Schema format
+          schema:
+            $ref: '#/definitions/Setting'
+                
+        -1:
+          description: App not found
+
+  /payment/inapp:
+    get:
+      tags:
+        - "payment"
+      summary: gets inapp-item list
+      parameters:
+        - name: authorization
+          in: query
+          description: Token of player
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successful response
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                desc:
+                  type: string
+                icon:
+                  type: string
+                price:
+                  type: number
+                currency:
+                  type: number
+        -1:
+          description: App/Item not found
+
+  /payment/androidreceipt:
+    post:
+      tags:
+        - "payment"
+      summary: Android validate inapp-item receipt
+      parameters:
+        - name: data
+          in: body
+          description: data post to server
+          required: true
+          schema:
+            type: object
+            properties:
+              authorization:
+                type: string
+                description: Token of player
+              receipt:
+                type: string
+                description: Android inapp-item receipt
+              product_id:
+                type: string
+                description: Identification of product
+              payload:
+                type: string
+            required:
+              - authorization
+              - receipt
+              - product_id
+              - payload
+      responses:
+        200:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/IAPTransaction'
+        -105:
+          description: app_id does not exist
+        -107:
+          description: user does not exist
+        -113:
+          description: item does not exist
+        -114:
+          description: google receipt validation failed
+        -115:
+          description: item has been used
+  
+  /payment/iosreceipt:
+    post:
+      tags:
+        - "payment"
+      summary: iOS validate inapp-item receipt
+      parameters:
+        - name: data
+          in: body
+          description: data post to server
+          required: true
+          schema:
+            type: object
+            properties:
+              authorization:
+                type: string
+                description: Token of player
+              receipt:
+                type: string
+                description: Android inapp-item receipt
+              product_id:
+                type: string
+                description: Identification of product
+              transaction_id:
+                type: string
+                description: Identification of transaction
+              payload:
+                type: string
+            required:
+              - authorization
+              - receipt
+              - product_id
+              - transaction_id
+              - payload
+      responses:
+        200:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/IAPTransaction'
+        -105:
+          description: app_id does not exist
+        -107:
+          description: user does not exist
+        -113:
+          description: item does not exist
+        -115:
+          description: item has been used
+        -116:
+          description: apple receipt validation failed
+
+  /player-ads/is_available:
+    get:
+      tags:
+        - "player-ads"
+      summary: checks if the player is available
+      parameters:
+        - name: app_id
+          in: query
+          description: Identification of app
+          required: true
+          type: string
+        - name: player_id
+          in: query
+          description: Identification of player
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successful response
+          schema: 
+            title: data
+            type: object
+            properties:
+              is_available:
+                type: boolean
+        -1:
+          description: System error
+  
+  /player/info:
+    get:
+      tags:
+        - "player"
+      summary: gets player infomation
+      parameters:
+        - name: authorization
+          in: query
+          description: Token of player
+          required: true
+          type: string
+        - name: app_id
+          in: query
+          description: Identification of app
+          type: string
+      responses:
+        200:
+          description: Successful response
+          schema:
+            title: data
+            type: object
+            properties:
+              id:
+                type: string
+              username:
+                type: string
+              email:
+                type: string
+                format: email
+              phone_number:
+                type: string
+        -1:
+          description: System error
+        -107:
+          description: Player does not exists
+  /player:
+    post:
+      tags:
+        - "player"
+      summary: creates player
+      parameters:
+        - name: Player
+          in: body
+          description: New player
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+                format: password
+                minLength: 6
+                maxLength: 50
+              email:
+                type: string
+                format: email
+                minLength: 6
+                maxLength: 45
+              app_id:
+                type: string
+              fcm:
+                type: string
+              apns:
+                type: string
+      responses:
+        200:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/Player'
+
+  /player/edit:
+    post:
+      tags:
+        - "player"
+      summary: updates player infomation
+      parameters:
+        - name: Player
+          in: body
+          description: New infomation
+          required: true
+          schema:
+            type: object
+            properties:
+              authorization:
+                type: string
+                description: Token of player
+              email:
+                type: string
+                format: email
+                minLength: 6
+                maxLength: 45
+              phone_number:
+                type: string
+                minLength: 6
+                maxLength: 32
+            required:
+              - authorization
+      responses:
+        200:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/Player'
+        -1:
+          description: System error
+        -103:
+          description: Invalid email. Email at least 6 characters and at most 45 characters.
+        -104:
+          description: Email is already in use
+        -105:
+          description: app_id does not exist
+        -106:
+          description: Invalid phone number
+        -107:
+           description: User does not exist
+  /player/changepassword:
+    post:
+      tags:
+        - "player"
+      summary: changes player password
+      parameters:
+        - name: data
+          in: body
+          schema:
+            type: object
+            properties:
+              authorization:
+                type: string
+              old_password:
+                type: string
+              password1:
+                type: string
+              password2:
+                type: string
+      responses:
+        200:
+          description: Successful response
+        -1:
+          description: System error
+        -101:
+          description: Username already exists
+        -102:
+          description: Invalid password. Password must be at least 6 characters and at most 50 characters, including letters or numbers.
+        -108:
+          description: Wrong password
+  /player/forgotpassword:
+    get:
+      tags:
+        - "player"
+      summary: allows player reset password by email
+      parameters:
+        - name: app_id
+          in: query
+          required: true
+          type: string
+        - name: email
+          in: query
+          required: true
+          type: string
+          format: email
+      responses:
+        200:
+          description: Successful response
+        -1:
+          description: System error
+        -119:
+          description: Email does not exist
+  /player/quickplayupdate:
+    post:
+      tags:
+        - "player"
+      summary: updates email, password for quickplay user
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              authorization:
+                type: string
+              password:
+                type: string
+                format: password
+              email:
+                type: string
+                format: email
+            required:
+              - authorization
+              - password
+              - email
+      responses:
+        200:
+          description: Successful response
+        -1:
+          description: System error
+        -101:
+          description: Username already exists
+        -102:
+          description: Invalid password. Password must be at least 6 characters and at most 50 characters, including letters or numbers.
+        -104:
+          description: Email is already in use
+  /player/quickplay:
+    post:
+      tags:
+        - "player"
+      summary: creates quickplay user
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              app_id:
+                type: string
+              fcm:
+                type: string
+              apns:
+                type: string
+            required:
+              - app_id
+      responses:
+        200:
+          description: Successful response
+          schema:
+            type: object
+            properties:
+              authorization:
+                type: string
+              player_id:
+                type: string
+              username:
+                type: string
+              password:
+                type: string
+                format: password
+              email:
+                type: string
+                format: email
+              login_count:
+                default: 0
+        -1:
+          description: System error
+        -105:
+          description: app_is does not exist
+  /player/auth:
+    post:
+      tags:
+        - "player"
+      summary: auth player
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+              app_id:
+                type: string
+              fcm:
+                type: string
+              apns:
+                type: string
+            required:
+              - username
+              - password
+              - app_id
+      responses:
+        200:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/AuthPlayer'
+        -1:
+          description: System error
+        -100:
+          description: Username is not valid. Username must be at least 6 characters and at most 24 characters, including letters or numbers.
+        -102:
+          description: Invalid password. Password must be at least 6 characters and at most 50 characters, including letters or numbers.
+        -105:
+          description: app_id does not exist
+        -109:
+          description: Wrong username or password
+  
+  /player/facebookauth:
+    post:
+      tags:
+        - "player"
+      summary: auth player by Facebook
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              fb_access_token:
+                type: string
+              app_id:
+                type: string
+              fcm:
+                type: string
+              apns:
+                type: string
+            required:
+              - fb_access_token
+              - app_id
+      responses:
+        200:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/AuthPlayer'
+        -1:
+          description: System error
+        -104:
+          description: Email is already in use
+        -105:
+          description: app_id does not exist
+
+  /player/googleauth:
+    post:
+      tags:
+        - "player"
+      summary: auth player by Google
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              gg_access_token:
+                type: string
+              app_id:
+                type: string
+              fcm:
+                type: string
+              apns:
+                type: string
+            required:
+              - gg_access_token
+              - app_id
+      responses:
+        200:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/AuthPlayer'
+        -1:
+          description: System error
+        -104:
+          description: Email is already in use
+        -105:
+          description: app_id does not exist
+        -114:
+          description: Google authentication failed
+  
+  /player/appleauth:
+    post:
+      tags:
+        - "player"
+      summary: auth player by Apple
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              access_token:
+                type: string
+              app_id:
+                type: string
+              fcm:
+                type: string
+              apns:
+                type: string
+            required:
+              - access_token
+              - app_id
+      responses:
+        200:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/AuthPlayer'
+        -1:
+          description: System error
+        -104:
+          description: Email is already in use
+        -105:
+          description: app_id does not exist
+        -111:
+          description: Authentication failed
+
+  /player/refresh_token:
+    post:
+      tags:
+        - "player"
+      summary: refreshes player token
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              app_id:
+                type: string
+              authorization:
+                type: string
+              sign:
+                type: string
+                description: md5(app_id + authorization + timestamp + app_secret)
+              timestamp:
+                type: number
+            required:
+              - app_id
+              - authorization
+              - sign
+              - timestamp
+      responses:
+        200:
+          description: Successful response
+          schema:
+            type: object
+            properties:
+              authorization:
+                type: string
+        -105:
+          description: app_id does not exist
+        -117:
+          description: Invalid sign
+
+  /player/netalootp:
+    post:
+      tags:
+        - "player"
+      summary: gets Netalo OTP
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              phone_number:
+                type: string
+                minLength: 6
+                maxLength: 32
+            required:
+              - phone_number
+      responses:
+        200:
+          description: Successful response
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+        -120:
+          description: \[Netalo\] Unauthorized
+        -121:
+          description: \[Netalo\] Phone number is incorrect
+
+  /player/verifyotp:
+    post:
+      tags:
+        - "player"
+      summary: verifies Netalo OTP
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              app_id:
+                type: string
+              otp:
+                type: string
+                minLength: 6
+                maxLength: 32
+              token:
+                type: string
+              phone_number:
+                type: string
+                minLength: 6
+                maxLength: 32
+            required:
+              - app_id
+              - otp
+              - token
+              - phone_number
+      responses:
+        200:
+          description: Successful response
+          schema:
+            type: object
+            properties:
+              authorization:
+                type: string
+              play_id:
+                type: string
+              username:
+                type: string
+              email:
+                type: string
+                format: email
+              phone_number:
+                type: string
+              login_count:
+                type: string
+              netaloToken:
+                type: string
+              netaloId:
+                type: string
+        -1:
+          description: System error
+        -104:
+          description: Email already exists
+        -105:
+          description: app_id does not exist
+definitions:
+  Setting:
+    type: object
+    properties:
+      setting_01:
+        type: boolean
+        description: is_formal_auth_enable
+        default: false
+      setting_02:
+        type: boolean
+        description: is_facebook_auth_enable
+        default: false
+      setting_03:
+        type: boolean
+        description: is_google_auth_enable
+        default: false
+      setting_04:
+        type: boolean
+        description: is_quickplay_enable
+        default: false
+      setting_05:
+        type: boolean
+        description: is_inapp_purchase_enable
+        default: false
+      setting_06:
+        type: boolean
+        description: is_card_purchase_enable
+        default: false
+      setting_07:
+        type: boolean
+        description: is_force_update
+        default: false
+      setting_08:
+        type: boolean
+        description: is_active == 1
+      setting_09:
+        type: string
+        description: icon
+      setting_10:
+        type: string
+        description: logo
+      setting_11:
+        type: string
+        description: version
+      setting_12:
+        type: string
+        description: name
+      setting_13:
+        type: string
+        description: store url
+      setting_14:
+        type: string
+        description: force_update_url
+      setting_15:
+        type: string
+        description: promote_images
+      setting_16:
+        type: string
+        description: mopub_ad_unit_id
+      setting_17:
+        type: string
+        description: facebook_app_id
+      setting_18:
+        type: string
+        description: google_client_id
+      setting_19:
+        type: string
+        description: support_url
+      setting_20:
+        type: string
+        description: appsflyer_id
+      setting_21:
+        type: string
+        description: appsflyer_key
+      setting_22:
+        type: boolean
+        description: is_full_register_enable
+        default: false
+      setting_23:
+        type: string
+        description: full_register_url
+      setting_24:
+        type: string
+        description: hotline
+      setting_25:
+        type: boolean
+        description: is_apple_auth_enable
+        default: false
+  
+  IAPTransaction:
+    type: object
+    properties:
+      app_id:
+        type: string
+        default: ''
+      product_id:
+        type: string
+        default: ''
+      purchase_date_ms:
+        type: number
+        default: 0
+      product_price:
+        type: number
+        default: 0
+      product_amount:
+        type: number
+        default: 0
+      product_currency:
+        type: number
+        default: 0
+      payload:
+        type: string
+        default: ''
+      status:
+        type: number
+        default: 0
+      message:
+        type: string
+        default: ''
+      username:
+        type: string
+        default: ''
+
+  Player:
+    type: object
+    properties:
+      id:
+        type: string
+      app_id:
+        type: string
+      fcm:
+        type: string
+      apns:
+        type: string
+      username:
+        type: string
+      agent:
+        type: string
+      af_id:
+        type: string
+      idfa:
+        type: string
+      login_count:
+        type: number
+  
+  AuthPlayer:
+    type: object
+    properties:
+      authorization:
+        type: string
+      player_id:
+        type: string
+      username:
+        type: string
+      email:
+        type: string
+        format: email
+      phone_number:
+        type: string
+      login_count:
+        type: number
+      
+host: sdkapi-dev.phoeniz.com
+basePath: /mobi-v1.2
+schemes:
+  - http
